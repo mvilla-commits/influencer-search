@@ -908,7 +908,7 @@ async function startSearch() {
   content.innerHTML = renderShimmer();
 
   try {
-    const response = await fetch("/.netlify/functions/search", {
+    const response = await fetch("https://influencer-proxy.m-villa-a79.workers.dev/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
