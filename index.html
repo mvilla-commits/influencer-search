@@ -365,23 +365,6 @@
     color: var(--ink-soft);
     flex-shrink: 0;
     letter-spacing: -0.02em;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-  }
-
-  .avatar .avatar-initial {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .card-name {
@@ -809,9 +792,12 @@ Istruzioni:
 6. Suggerisci UN profilo straniero rilevante per il brand (fuori brief geografico).
 
 Rispondi SOLO JSON, no markdown:
-{"influencers":[{"name":"","handle":"@","profile_url":"","followers":null,"followers_note":null,"city":null,"affinity_score":80,"affinity_reasons":[""],"bio_excerpt":"","verified":false}],"foreign_suggestion":{"name":"","handle":"@","profile_url":"","country":"","reason":""}}
+{"influencers":[{"name":"","handle":"@","profile_url":"","followers":null,"followers_note":null,"city":null,"affinity_score":80,"affinity_reasons":[""],"bio_excerpt":"","verified":false,"fuori_brief":false}]}
 
-Max 5 profili italiani certi. Qualità > quantità.`;
+Regole:
+- Max 5 profili italiani certi (fuori_brief: false)
+- Aggiungi in fondo alla lista UN profilo straniero rilevante per il brand (fuori_brief: true), con affinity_score tra 30 e 50. Includilo solo se hai trovato il profilo reale nei risultati di ricerca, non inventarlo.
+- Qualità > quantità.`;
 }
 
 function renderShimmer() {
@@ -843,19 +829,16 @@ function renderResults(data) {
     const reasons = (p.affinity_reasons || []).map(r => `<span class="tag">${r}</span>`).join('');
     const verifiedBadge = p.verified ? `<span class="verified-badge" title="Verificato"></span>` : '';
     const platformKey = { Instagram: "instagram", TikTok: "tiktok", YouTube: "youtube" }[selectedPlatform] || "instagram";
-    const handle = (p.handle || "").replace("@", "");
-    const avatarUrl = handle ? `https://unavatar.io/${platformKey}/${handle}` : null;
-    const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name || handle)}&size=88&background=EDE9DF&color=4A4540&bold=true&font-size=0.38`;
-    const avatarHtml = `<img src="${avatarUrl || fallbackUrl}" alt="${p.name}" onerror="this.src='${fallbackUrl}'">`;
+    const fuoriBriefBadge = p.fuori_brief ? `<span style="font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);background:var(--gold-pale);border:1px solid rgba(196,150,58,0.3);border-radius:20px;padding:2px 9px;margin-left:4px;">Fuori brief</span>` : '';
 
     return `
-    <div class="card" style="animation-delay:${0.05 + i * 0.06}s">
+    <div class="card" style="animation-delay:${0.05 + i * 0.06}s${p.fuori_brief ? ';opacity:0.85' : ''}">
       <div class="card-top">
         <div class="card-identity">
-          <div class="avatar">${avatarHtml}</div>
+          <div class="avatar">${initial}</div>
           <div>
             <div class="card-name">
-              ${p.name || p.handle} ${verifiedBadge}
+              ${p.name || p.handle} ${verifiedBadge} ${fuoriBriefBadge}
               ${p.city ? `<span class="city-pill"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>${p.city}</span>` : ''}
             </div>
             <div class="card-handle">${p.handle || ''}</div>
@@ -880,29 +863,11 @@ function renderResults(data) {
     </div>`;
   }).join('');
 
-  const fs = data.foreign_suggestion;
-  const foreignCard = fs ? `
-    <div style="margin-bottom:28px;background:var(--gold-pale);border:1px solid rgba(196,150,58,0.3);border-radius:var(--radius-lg);padding:18px 22px;">
-      <div style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Suggerimento fuori brief</div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-        <div class="avatar" style="width:38px;height:38px;font-size:15px;flex-shrink:0;overflow:hidden;">
-          <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(fs.name||'')}&size=76&background=F5EDD6&color=C4963A&bold=true&font-size=0.38" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="${fs.name}">
-        </div>
-        <div>
-          <div style="font-weight:500;font-size:14px;color:var(--ink);">${fs.name} <span style="font-size:11px;color:var(--ink-muted);font-weight:400;">${fs.country||''}</span></div>
-          <div style="font-size:12px;color:var(--ink-muted);">${fs.handle||''}</div>
-        </div>
-      </div>
-      <p style="font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:10px;font-style:italic;">${fs.reason||''}</p>
-      ${fs.profile_url ? `<a class="card-link" href="${fs.profile_url}" target="_blank" rel="noopener">Apri profilo <svg viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : ''}
-    </div>` : '';
-
   return `
     <div class="results-meta">
       <div class="results-count"><strong>${inf.length}</strong> influencer trovati</div>
       <div class="results-tag">${platform}</div>
     </div>
-    ${foreignCard}
     <div class="cards-grid">${cards}</div>`;
 }
 
