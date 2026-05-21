@@ -13,9 +13,7 @@
     --cream: #F7F4EE;
     --cream-dark: #EDE9DF;
     --ink: #1A1814;
-    --ink-soft: #4A4540;ncaught SyntaxError: Unexpected token ')'Understand this error
-4influencer-search/:689 Uncaught ReferenceError: startSearch is not defined
-    at HTMLButtonElement.onclick (influencer-search/:689:71)
+    --ink-soft: #4A4540;
     --ink-muted: #8A837A;
     --gold: #C4963A;
     --gold-light: #E8C97A;
@@ -766,6 +764,7 @@ function affinityClass(score) {
   if (score >= 50) return { fill: "affinity-mid",  score: "score-mid" };
   return { fill: "affinity-low", score: "score-low" };
 }
+
 function buildSearchPayload() {
   return {
     brand: document.getElementById('brand').value.trim(),
@@ -777,18 +776,6 @@ function buildSearchPayload() {
     gender: getGender(),
     characteristics: document.getElementById('characteristics').value.trim()
   };
-}
-
-  return `Influencer italiani su ${selectedPlatform} per: ${brand} (${sector})${desc ? ', ' + desc.substring(0,80) : ''}.
-Genere: ${genderLabel}. Follower: ${minK||'0'}K–${maxK||'∞'}K.${chars ? ' Note: ' + chars.substring(0,80) + '.' : ''}
-
-Cerca su site:${site} con 1 query mirata.${genderHint}
-Includi solo profili con URL ${site} trovato nei risultati. Non inventare.
-Affinity 0-100: coerenza brand+settore+mercato IT. Città se desumibile.
-Aggiungi 1 profilo straniero rilevante (fuori_brief:true, affinity 30-50) solo se trovato nei risultati.
-
-JSON only, no markdown:
-{"influencers":[{"name":"","handle":"@","profile_url":"","followers":null,"followers_note":null,"city":null,"affinity_score":0,"affinity_reasons":[""],"bio_excerpt":"","verified":false,"fuori_brief":false}]}`;
 }
 
 function renderShimmer() {
@@ -863,12 +850,6 @@ function renderResults(data) {
 }
 
 async function startSearch() {
-  console.log("startSearch avviata");
-
-  const brand  = document.getElementById('brand').value.trim();
-  const sector = document.getElementById('sector').value.trim();
-  ...
-}
   const brand  = document.getElementById('brand').value.trim();
   const sector = document.getElementById('sector').value.trim();
   if (!brand || !sector) { alert('Inserisci almeno il nome del brand e il settore.'); return; }
@@ -898,27 +879,21 @@ async function startSearch() {
 
   content.innerHTML = renderShimmer();
 
- const doFetch = async (attempt) => {
-  const response = await fetch("https://influencer-proxy.m-villa-a79.workers.dev/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildSearchPayload())
-  });
-
-  const rawText = await response.text();
-
-  if (response.status === 429 && attempt < 2) {
-    msg.textContent = "Limite raggiunto, riprovo tra 30 secondi…";
-    await new Promise(r => setTimeout(r, 30000));
-    return doFetch(attempt + 1);
-  }
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${rawText.substring(0, 200)}`);
-  }
-
-  return JSON.parse(rawText);
-};
+  const doFetch = async (attempt) => {
+    const response = await fetch("https://influencer-proxy.m-villa-a79.workers.dev/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildSearchPayload())
+    });
+    const rawText = await response.text();
+    if (response.status === 429 && attempt < 2) {
+      msg.textContent = "Limite raggiunto, riprovo tra 30 secondi…";
+      await new Promise(r => setTimeout(r, 30000));
+      return doFetch(attempt + 1);
+    }
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${rawText.substring(0, 200)}`);
+    return JSON.parse(rawText);
+  };
 
   try {
     const data = await doFetch(0);
