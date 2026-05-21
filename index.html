@@ -861,6 +861,12 @@ function renderResults(data) {
 }
 
 async function startSearch() {
+  console.log("startSearch avviata");
+
+  const brand  = document.getElementById('brand').value.trim();
+  const sector = document.getElementById('sector').value.trim();
+  ...
+}
   const brand  = document.getElementById('brand').value.trim();
   const sector = document.getElementById('sector').value.trim();
   if (!brand || !sector) { alert('Inserisci almeno il nome del brand e il settore.'); return; }
