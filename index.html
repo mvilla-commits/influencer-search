@@ -671,11 +671,11 @@
       <label class="field-label">Genere <span>opzionale</span></label>
       <div class="gender-toggles">
         <label class="gender-toggle" id="toggleM">
-          <input type="checkbox" id="genderM" onchange="onGenderChange('M')">
+          <input type="checkbox" id="genderM">
           <span class="gender-dot"></span> Uomo
         </label>
         <label class="gender-toggle" id="toggleF">
-          <input type="checkbox" id="genderF" onchange="onGenderChange('F')">
+          <input type="checkbox" id="genderF">
           <span class="gender-dot"></span> Donna
         </label>
       </div>
@@ -686,7 +686,7 @@
       <textarea id="characteristics" placeholder="es. giornalista con esperienza TV, chef under 35, creator lifestyle famiglia…" style="min-height:60px;"></textarea>
     </div>
 
-    <button class="btn-search" id="searchBtn" onclick="startSearch()">
+    <button class="btn-search" id="searchBtn" type="button">
       <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       Cerca influencer
     </button>
@@ -920,6 +920,12 @@ async function startSearch() {
     msg.textContent = '';
   }
 }
+
+// Bind events without inline handlers, so functions do not need to be global.
+document.getElementById('searchBtn').addEventListener('click', startSearch);
+document.getElementById('genderM').addEventListener('change', () => onGenderChange('M'));
+document.getElementById('genderF').addEventListener('change', () => onGenderChange('F'));
+
 </script>
 </body>
 </html>
