@@ -716,7 +716,7 @@
   <main class="main">
     <div class="main-header">
       <div class="main-eyebrow">Research Tool</div>
-      <h1 class="main-title">Trova i tuoi<br><em>brand ambassador</em><br>ideali</h1>
+      <h1 class="main-title">Trovatelo tu</h1>
       <p class="main-desc">Ricerca intelligente di influencer italiani con analisi dell'affinità basata su AI e dati web in tempo reale.</p>
     </div>
 
@@ -816,9 +816,9 @@ ${gender ? '7' : '6'}. Cerca di rilevare la città italiana di provenienza o res
 È meglio restituire 3 profili certi che 7 con profili dubbi. Qualità prima di quantità.
 
 Rispondi SOLO con un oggetto JSON valido, niente markdown niente backtick:
-{"influencers":[{"name":"Nome o handle","handle":"@username","profile_url":"url completo","followers":125000,"followers_note":"approssimativo da snippet o null","city":"Milano o null","affinity_score":85,"affinity_reasons":["motivo 1","motivo 2"],"bio_excerpt":"estratto bio o descrizione","verified":false}],"search_notes":"breve nota sulla ricerca"}
+{"influencers":[{"name":"Nome o handle","handle":"@username","profile_url":"url completo","followers":125000,"followers_note":"approssimativo da snippet o null","city":"Milano o null","affinity_score":85,"affinity_reasons":["motivo 1","motivo 2"],"bio_excerpt":"estratto bio o descrizione","verified":false}],"foreign_suggestion":{"name":"Nome","handle":"@username","profile_url":"url","country":"paese","reason":"perché è rilevante per questo brand pur non essendo italiano, in 1-2 frasi"}}
 
-Trova 4-7 influencer. Se i follower non sono negli snippet, includi il profilo con followers: null.`;
+Trova 4-7 influencer italiani. Per foreign_suggestion: individua UN solo profilo straniero (non italiano) che sarebbe rilevante per il brand, anche se fuori dal brief geografico. Se non ne trovi uno convincente, ometti il campo.`;
 }
 
 function renderShimmer() {
@@ -852,9 +852,8 @@ function renderResults(data) {
     const platformKey = { Instagram: "instagram", TikTok: "tiktok", YouTube: "youtube" }[selectedPlatform] || "instagram";
     const handle = (p.handle || "").replace("@", "");
     const avatarUrl = handle ? `https://unavatar.io/${platformKey}/${handle}` : null;
-    const avatarHtml = avatarUrl
-      ? `<img src="${avatarUrl}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="avatar-initial" style="display:none">${initial}</span>`
-      : `<span class="avatar-initial">${initial}</span>`;
+    const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name || handle)}&size=88&background=EDE9DF&color=4A4540&bold=true&font-size=0.38`;
+    const avatarHtml = `<img src="${avatarUrl || fallbackUrl}" alt="${p.name}" onerror="this.src='${fallbackUrl}'">`;
 
     return `
     <div class="card" style="animation-delay:${0.05 + i * 0.06}s">
@@ -888,14 +887,29 @@ function renderResults(data) {
     </div>`;
   }).join('');
 
-  const note = data.search_notes ? `<div class="search-note">💡 ${data.search_notes}</div>` : '';
+  const fs = data.foreign_suggestion;
+  const foreignCard = fs ? `
+    <div style="margin-bottom:28px;background:var(--gold-pale);border:1px solid rgba(196,150,58,0.3);border-radius:var(--radius-lg);padding:18px 22px;">
+      <div style="font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Suggerimento fuori brief</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+        <div class="avatar" style="width:38px;height:38px;font-size:15px;flex-shrink:0;overflow:hidden;">
+          <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(fs.name||'')}&size=76&background=F5EDD6&color=C4963A&bold=true&font-size=0.38" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="${fs.name}">
+        </div>
+        <div>
+          <div style="font-weight:500;font-size:14px;color:var(--ink);">${fs.name} <span style="font-size:11px;color:var(--ink-muted);font-weight:400;">${fs.country||''}</span></div>
+          <div style="font-size:12px;color:var(--ink-muted);">${fs.handle||''}</div>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:10px;font-style:italic;">${fs.reason||''}</p>
+      ${fs.profile_url ? `<a class="card-link" href="${fs.profile_url}" target="_blank" rel="noopener">Apri profilo <svg viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>` : ''}
+    </div>` : '';
 
   return `
     <div class="results-meta">
       <div class="results-count"><strong>${inf.length}</strong> influencer trovati</div>
       <div class="results-tag">${platform}</div>
     </div>
-    ${note}
+    ${foreignCard}
     <div class="cards-grid">${cards}</div>`;
 }
 
