@@ -795,30 +795,23 @@ function buildPrompt() {
   const genderLabel = gender === 'M' ? 'uomo' : gender === 'F' ? 'donna' : 'indifferente';
   const genderHint  = gender === 'M' ? ' Preferisci pronomi/termini maschili nelle query.' : gender === 'F' ? ' Preferisci pronomi/termini femminili nelle query.' : '';
 
-  return `Sei un esperto di influencer marketing italiano. Trova influencer italiani su ${selectedPlatform} per questo brand:
-
-BRAND: ${brand}
-DESCRIZIONE: ${desc || "non specificata"}
-SETTORE: ${sector}
-PIATTAFORMA: ${selectedPlatform}
-RANGE FOLLOWER: ${minK ? minK + "K" : "nessun minimo"} – ${maxK ? maxK + "K" : "nessun massimo"}
-GENERE: ${genderLabel}
-CARATTERISTICHE RICHIESTE: ${chars || "nessuna specifica"}
+  return `Trova influencer italiani su ${selectedPlatform} per questo brand:
+BRAND: ${brand} | SETTORE: ${sector} | GENERE: ${genderLabel}
+FOLLOWER: ${minK ? minK+"K" : "0"} – ${maxK ? maxK+"K" : "∞"} | CARATTERISTICHE: ${chars || "nessuna"}
+${desc ? "BRAND NOTE: " + desc : ""}
 
 Istruzioni:
-1. Esegui 2-4 ricerche mirate con query tipo: site:${site} "${sector}" italia, oppure combinando caratteristiche e termini italiani pertinenti. Varia le query per massimizzare i risultati.${genderHint}
-2. Includi un profilo SOLO se appare direttamente nei risultati di ricerca con un URL verificabile su ${site}. Non inventare o dedurre profili: se non hai trovato l'URL nei risultati, scartalo.
-3. Per ogni profilo trovato negli snippet Google, estrai nome, handle, URL esatto e numero follower se visibile.
-4. Filtra per il range follower richiesto dove il dato è disponibile.${gender ? `\n5. Includi solo influencer di genere ${genderLabel}.` : ''}
-${gender ? '6' : '5'}. Calcola un indice di affinità 0-100 basato su: coerenza con brand e descrizione, match con le caratteristiche richieste, presenza nel mercato italiano, rilevanza di settore.
-${gender ? '7' : '6'}. Cerca di rilevare la città italiana di provenienza o residenza da bio, geotag o riferimenti nei contenuti. Se non è desumibile, lascia city: null.
+1. Esegui 2 ricerche: site:${site} con termini del settore e caratteristiche richieste in italiano.${genderHint}
+2. Includi SOLO profili con URL ${site} trovato direttamente nei risultati. Non inventare.
+3. Estrai nome, handle, URL, follower se visibili. Filtra per range follower.${gender ? ` Solo genere ${genderLabel}.` : ""}
+4. Affinità 0-100: coerenza brand, caratteristiche, mercato italiano.
+5. Rileva città italiana se desumibile, altrimenti null.
+6. Suggerisci UN profilo straniero rilevante per il brand (fuori brief geografico).
 
-È meglio restituire 3 profili certi che 7 con profili dubbi. Qualità prima di quantità.
+Rispondi SOLO JSON, no markdown:
+{"influencers":[{"name":"","handle":"@","profile_url":"","followers":null,"followers_note":null,"city":null,"affinity_score":80,"affinity_reasons":[""],"bio_excerpt":"","verified":false}],"foreign_suggestion":{"name":"","handle":"@","profile_url":"","country":"","reason":""}}
 
-Rispondi SOLO con un oggetto JSON valido, niente markdown niente backtick:
-{"influencers":[{"name":"Nome o handle","handle":"@username","profile_url":"url completo","followers":125000,"followers_note":"approssimativo da snippet o null","city":"Milano o null","affinity_score":85,"affinity_reasons":["motivo 1","motivo 2"],"bio_excerpt":"estratto bio o descrizione","verified":false}],"foreign_suggestion":{"name":"Nome","handle":"@username","profile_url":"url","country":"paese","reason":"perché è rilevante per questo brand pur non essendo italiano, in 1-2 frasi"}}
-
-Trova 4-7 influencer italiani. Per foreign_suggestion: individua UN solo profilo straniero (non italiano) che sarebbe rilevante per il brand, anche se fuori dal brief geografico. Se non ne trovi uno convincente, ometti il campo.`;
+Max 5 profili italiani certi. Qualità > quantità.`;
 }
 
 function renderShimmer() {
@@ -943,24 +936,29 @@ async function startSearch() {
 
   content.innerHTML = renderShimmer();
 
-  try {
+  const doFetch = async (attempt) => {
     const response = await fetch("https://influencer-proxy.m-villa-a79.workers.dev/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 4000,
+        max_tokens: 2000,
         tools: [{ type: "web_search_20250305", name: "web_search" }],
         messages: [{ role: "user", content: buildPrompt() }]
       })
     });
-
     const rawText = await response.text();
-    console.log("Status:", response.status, "Body:", rawText.substring(0, 300));
+    if (response.status === 429 && attempt < 2) {
+      msg.textContent = "Limite raggiunto, riprovo tra 30 secondi…";
+      await new Promise(r => setTimeout(r, 30000));
+      return doFetch(attempt + 1);
+    }
     if (!response.ok) throw new Error(`HTTP ${response.status}: ${rawText.substring(0, 200)}`);
-    const data = JSON.parse(rawText);
+    return JSON.parse(rawText);
+  };
+
+  try {
+    const data = await doFetch(0);
     if (data.error) throw new Error(data.error.message);
 
     const fullText = (data.content || [])
