@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Influencer Finder — Italia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F7F4EE;
+    --cream-dark: #EDE9DF;
+    --ink: #1A1814;
+    --ink-soft: #4A4540;
+    --ink-muted: #8A837A;
+    --gold: #C4963A;
+    --gold-light: #E8C97A;
+    --gold-pale: #F5EDD6;
+    --border: rgba(26,24,20,0.12);
+    --border-strong: rgba(26,24,20,0.25);
+    --success: #3A7A4A;
+    --warning: #B07020;
+    --danger: #8A2A2A;
+    --radius: 4px;
+    --radius-lg: 8px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 14px;
+    font-weight: 300;
+  }
+
+  /* Layout */
+  .page { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 380px;
+    min-width: 380px;
+    background: var(--ink);
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .main {
+    flex: 1;
+    padding: 48px 52px;
+    overflow-y: auto;
+  }
+
+  /* Sidebar header */
+  .brand-mark {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 48px;
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .brand-icon svg { width: 16px; height: 16px; stroke: var(--gold); fill: none; }
+
+  .brand-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 300;
+    color: #F7F4EE;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-sub {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--gold);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Form */
+  .form-section { margin-bottom: 28px; }
+
+  .field-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .field-label span { color: rgba(196,150,58,0.5); font-size: 9px; }
+
+  input[type="text"],
+  input[type="number"],
+  select,
+  textarea {
+    width: 100%;
+    background: rgba(247,244,238,0.06);
+    border: 1px solid rgba(247,244,238,0.15);
+    border-radius: var(--radius);
+    color: #F7F4EE;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  input::placeholder, textarea::placeholder { color: rgba(247,244,238,0.3); }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--gold);
+    background: rgba(247,244,238,0.08);
+  }
+
+  select { cursor: pointer; }
+  select option { background: #2A2520; color: #F7F4EE; }
+
+  textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .divider {
+    height: 1px;
+    background: rgba(247,244,238,0.1);
+    margin: 28px 0;
+  }
+
+  /* Platform tabs */
+  .platform-tabs { display: flex; gap: 6px; }
+
+  .platform-tab {
+    flex: 1;
+    padding: 8px 6px;
+    border: 1px solid rgba(247,244,238,0.15);
+    border-radius: var(--radius);
+    background: transparent;
+    color: rgba(247,244,238,0.45);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+
+  .platform-tab:hover { border-color: rgba(196,150,58,0.4); color: rgba(247,244,238,0.7); }
+
+  .platform-tab.active {
+    background: rgba(196,150,58,0.15);
+    border-color: var(--gold);
+    color: var(--gold-light);
+    font-weight: 500;
+  }
+
+  /* Submit button */
+  .btn-search {
+    width: 100%;
+    padding: 14px;
+    background: var(--gold);
+    border: none;
+    border-radius: var(--radius);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-search:hover { background: var(--gold-light); }
+  .btn-search:disabled { background: rgba(196,150,58,0.35); cursor: not-allowed; color: rgba(26,24,20,0.5); }
+
+  .btn-search svg { width: 15px; height: 15px; stroke: currentColor; fill: none; animation: none; }
+  .btn-search.loading svg { animation: spin 0.8s linear infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-msg {
+    font-size: 11px;
+    color: rgba(247,244,238,0.45);
+    text-align: center;
+    margin-top: 12px;
+    letter-spacing: 0.04em;
+    min-height: 18px;
+    transition: opacity 0.3s;
+  }
+
+  /* Main content */
+  .main-header {
+    margin-bottom: 40px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .main-eyebrow {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 10px;
+  }
+
+  .main-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    line-height: 1.05;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  .main-title em { font-style: italic; color: var(--gold); }
+
+  .main-desc {
+    margin-top: 16px;
+    color: var(--ink-muted);
+    line-height: 1.7;
+    max-width: 480px;
+    font-size: 14px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    padding: 80px 0;
+    text-align: center;
+  }
+
+  .empty-icon {
+    width: 56px;
+    height: 56px;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .empty-icon svg { width: 22px; height: 22px; stroke: var(--ink-muted); fill: none; }
+
+  .empty-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  .empty-text { color: var(--ink-muted); font-size: 13px; line-height: 1.6; }
+
+  /* Results */
+  .results-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .results-count {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+  }
+
+  .results-count strong { font-weight: 600; }
+
+  .results-tag {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--ink-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--cream-dark);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .search-note {
+    background: var(--gold-pale);
+    border-left: 3px solid var(--gold);
+    padding: 12px 16px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    margin-bottom: 28px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  .cards-grid { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Influencer card */
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    animation: fadeUp 0.35s ease both;
+  }
+
+  .card:hover { border-color: var(--border-strong); box-shadow: 0 4px 24px rgba(26,24,20,0.06); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:nth-child(1) { animation-delay: 0.05s; }
+  .card:nth-child(2) { animation-delay: 0.1s; }
+  .card:nth-child(3) { animation-delay: 0.15s; }
+  .card:nth-child(4) { animation-delay: 0.2s; }
+  .card:nth-child(5) { animation-delay: 0.25s; }
+  .card:nth-child(6) { animation-delay: 0.3s; }
+  .card:nth-child(7) { animation-delay: 0.35s; }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+
+  .card-identity { display: flex; align-items: center; gap: 14px; }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--cream-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+  }
+
+  .card-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .verified-badge {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: #1DA1F2;
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .verified-badge::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 16px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .card-handle { font-size: 13px; color: var(--ink-muted); }
+
+  .followers-block { text-align: right; }
+
+  .followers-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .followers-label {
+    font-size: 10px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+
+  .card-bio {
+    font-size: 13px;
+    color: var(--ink-muted);
+    line-height: 1.65;
+    margin-bottom: 18px;
+    font-style: italic;
+    border-left: 2px solid var(--cream-dark);
+    padding-left: 12px;
+  }
+
+  /* Affinity */
+  .affinity-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .affinity-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  .affinity-track {
+    flex: 1;
+    height: 3px;
+    background: var(--cream-dark);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .affinity-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  .affinity-score {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 300;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .affinity-high { background: var(--success); }
+  .affinity-mid  { background: var(--warning); }
+  .affinity-low  { background: var(--danger); }
+
+  .score-high { color: var(--success); }
+  .score-mid  { color: var(--warning); }
+  .score-low  { color: var(--danger); }
+
+  /* Tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--ink-soft);
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gold);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+
+  .card-link:hover { color: var(--ink); }
+  .card-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; }
+
+  /* Error */
+  .error-box {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    color: #7F1D1D;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* Key warning */
+  .key-warning {
+    background: rgba(196,150,58,0.12);
+    border: 1px solid rgba(196,150,58,0.3);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--gold-light);
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+
+  /* Loading shimmer */
+  .shimmer-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, var(--cream) 25%, var(--cream-dark) 50%, var(--cream) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 3px;
+  }
+
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  .sh-avatar { width: 44px; height: 44px; border-radius: 50%; }
+  .sh-line { height: 12px; margin: 8px 0; }
+  .sh-bar { height: 3px; margin: 16px 0; }
+
+  /* Gender toggle */
+  .gender-toggles { display: flex; gap: 8px; }
+
+  .gender-toggle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 10px;
+    border: 1px solid rgba(247,244,238,0.15);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: rgba(247,244,238,0.4);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    user-select: none;
+  }
+
+  .gender-toggle:hover { border-color: rgba(196,150,58,0.4); color: rgba(247,244,238,0.7); }
+
+  .gender-toggle.active {
+    background: rgba(196,150,58,0.15);
+    border-color: var(--gold);
+    color: var(--gold-light);
+    font-weight: 500;
+  }
+
+  .gender-toggle input { display: none; }
+
+  .gender-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+
+  .gender-toggle.active .gender-dot { background: var(--gold); border-color: var(--gold); }
+
+  /* City pill on card */
+  .city-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 9px;
+    margin-left: 8px;
+  }
+
+  .city-pill svg { width: 10px; height: 10px; stroke: var(--ink-muted); fill: none; flex-shrink: 0; }
+
+  @media (max-width: 900px) {
+    .page { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 0; height: auto; position: static; }
+    .main { padding: 32px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Sidebar / Form -->
+  <aside class="sidebar">
+    <div class="brand-mark">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+      <div>
+        <div class="brand-title">Influencer<br>Finder</div>
+        <div class="brand-sub">Mercato Italiano</div>
+      </div>
+    </div>
+
+    <div class="key-warning">
+      🔒 La API key è protetta sul server. Non è mai esposta nel codice.
+    </div>
+
+    <div class="form-section">
+      <label class="field-label">Nome brand <span>*</span></label>
+      <input type="text" id="brand" placeholder="es. Barilla, Gucci, Enel…">
+    </div>
+
+    <div class="form-section">
+      <label class="field-label">Settore <span>*</span></label>
+      <input type="text" id="sector" placeholder="es. Food, Moda, Sport, Tech, Beauty…">
+    </div>
+
+    <div class="form-section">
+      <label class="field-label">Descrizione brand</label>
+      <textarea id="description" placeholder="Valori, tono di comunicazione, target di riferimento…"></textarea>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-section">
+      <label class="field-label">Piattaforma</label>
+      <div class="platform-tabs">
+        <button class="platform-tab active" data-platform="Instagram">Instagram</button>
+        <button class="platform-tab" data-platform="TikTok">TikTok</button>
+        <button class="platform-tab" data-platform="YouTube">YouTube</button>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label class="field-label">Range follower (K)</label>
+      <div class="row-2">
+        <input type="number" id="followersMin" placeholder="Min es. 10">
+        <input type="number" id="followersMax" placeholder="Max es. 500">
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label class="field-label">Genere <span>opzionale</span></label>
+      <div class="gender-toggles">
+        <label class="gender-toggle" id="toggleM">
+          <input type="checkbox" id="genderM" onchange="onGenderChange('M')">
+          <span class="gender-dot"></span> Uomo
+        </label>
+        <label class="gender-toggle" id="toggleF">
+          <input type="checkbox" id="genderF" onchange="onGenderChange('F')">
+          <span class="gender-dot"></span> Donna
+        </label>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label class="field-label">Caratteristiche richieste</label>
+      <textarea id="characteristics" placeholder="es. giornalista con esperienza TV, chef under 35, creator lifestyle famiglia…" style="min-height:60px;"></textarea>
+    </div>
+
+    <button class="btn-search" id="searchBtn" onclick="startSearch()">
+      <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Cerca influencer
+    </button>
+
+    <div class="loading-msg" id="loadingMsg"></div>
+
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <div class="main-header">
+      <div class="main-eyebrow">Research Tool</div>
+      <h1 class="main-title">Trova i tuoi<br><em>brand ambassador</em><br>ideali</h1>
+      <p class="main-desc">Ricerca intelligente di influencer italiani con analisi dell'affinità basata su AI e dati web in tempo reale.</p>
+    </div>
+
+    <div id="content">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="empty-title">Nessuna ricerca ancora</div>
+        <p class="empty-text">Compila il form a sinistra per trovare<br>influencer italiani in linea con il tuo brand.</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+
+let selectedPlatform = "Instagram";
+let searchInterval = null;
+
+// Platform tabs
+document.querySelectorAll('.platform-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    selectedPlatform = tab.dataset.platform;
+  });
+});
+
+// Gender toggles — mutually exclusive, both off = indifferente
+function onGenderChange(selected) {
+  const other = selected === 'M' ? 'F' : 'M';
+  const selEl   = document.getElementById('gender' + selected);
+  const otherEl = document.getElementById('gender' + other);
+  const selTog  = document.getElementById('toggle' + selected);
+  const othTog  = document.getElementById('toggle' + other);
+  if (selEl.checked) {
+    otherEl.checked = false;
+    othTog.classList.remove('active');
+    selTog.classList.add('active');
+  } else {
+    selTog.classList.remove('active');
+  }
+}
+
+function getGender() {
+  if (document.getElementById('genderM').checked) return 'M';
+  if (document.getElementById('genderF').checked) return 'F';
+  return null;
+}
+
+function fmtFollowers(n) {
+  if (!n && n !== 0) return null;
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
+  if (n >= 1000) return Math.round(n / 1000) + "K";
+  return n.toString();
+}
+
+function affinityClass(score) {
+  if (score >= 75) return { fill: "affinity-high", score: "score-high" };
+  if (score >= 50) return { fill: "affinity-mid",  score: "score-mid" };
+  return { fill: "affinity-low", score: "score-low" };
+}
+
+function buildPrompt() {
+  const brand    = document.getElementById('brand').value.trim();
+  const sector   = document.getElementById('sector').value.trim();
+  const desc     = document.getElementById('description').value.trim();
+  const minK     = document.getElementById('followersMin').value.trim();
+  const maxK     = document.getElementById('followersMax').value.trim();
+  const chars    = document.getElementById('characteristics').value.trim();
+  const gender   = getGender();
+  const siteMap  = { Instagram: "instagram.com", TikTok: "tiktok.com", YouTube: "youtube.com" };
+  const site     = siteMap[selectedPlatform];
+  const genderLabel = gender === 'M' ? 'uomo' : gender === 'F' ? 'donna' : 'indifferente';
+  const genderHint  = gender === 'M' ? ' Preferisci pronomi/termini maschili nelle query.' : gender === 'F' ? ' Preferisci pronomi/termini femminili nelle query.' : '';
+
+  return `Sei un esperto di influencer marketing italiano. Trova influencer italiani su ${selectedPlatform} per questo brand:
+
+BRAND: ${brand}
+DESCRIZIONE: ${desc || "non specificata"}
+SETTORE: ${sector}
+PIATTAFORMA: ${selectedPlatform}
+RANGE FOLLOWER: ${minK ? minK + "K" : "nessun minimo"} – ${maxK ? maxK + "K" : "nessun massimo"}
+GENERE: ${genderLabel}
+CARATTERISTICHE RICHIESTE: ${chars || "nessuna specifica"}
+
+Istruzioni:
+1. Esegui 2-4 ricerche mirate con query tipo: site:${site} "${sector}" italia, oppure combinando caratteristiche e termini italiani pertinenti. Varia le query per massimizzare i risultati.${genderHint}
+2. Per ogni profilo trovato negli snippet Google, estrai nome, handle, URL e numero follower se visibile.
+3. Filtra per il range follower richiesto dove il dato è disponibile.${gender ? `\n4. Includi solo influencer di genere ${genderLabel}.` : ''}
+${gender ? '5' : '4'}. Calcola un indice di affinità 0-100 basato su: coerenza con brand e descrizione, match con le caratteristiche richieste, presenza nel mercato italiano, rilevanza di settore.
+${gender ? '6' : '5'}. Cerca di rilevare la città italiana di provenienza o residenza da bio, geotag o riferimenti nei contenuti. Se non è desumibile, lascia city: null.
+
+Rispondi SOLO con un oggetto JSON valido, niente markdown niente backtick:
+{"influencers":[{"name":"Nome o handle","handle":"@username","profile_url":"url completo","followers":125000,"followers_note":"approssimativo da snippet o null","city":"Milano o null","affinity_score":85,"affinity_reasons":["motivo 1","motivo 2"],"bio_excerpt":"estratto bio o descrizione","verified":false}],"search_notes":"breve nota sulla ricerca"}
+
+Trova 4-7 influencer. Se i follower non sono negli snippet, includi il profilo con followers: null.`;
+}
+
+function renderShimmer() {
+  return `<div class="cards-grid">${[1,2,3].map(() => `
+    <div class="shimmer-card">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        <div class="shimmer sh-avatar"></div>
+        <div style="flex:1"><div class="shimmer sh-line" style="width:55%;"></div><div class="shimmer sh-line" style="width:35%;margin-top:6px;"></div></div>
+        <div style="text-align:right"><div class="shimmer sh-line" style="width:50px;"></div></div>
+      </div>
+      <div class="shimmer sh-line" style="width:90%;"></div>
+      <div class="shimmer sh-line" style="width:75%;"></div>
+      <div class="shimmer sh-bar"></div>
+      <div style="display:flex;gap:6px;margin-top:12px;">
+        <div class="shimmer" style="width:80px;height:22px;border-radius:20px;"></div>
+        <div class="shimmer" style="width:100px;height:22px;border-radius:20px;"></div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function renderResults(data) {
+  const inf = data.influencers || [];
+  const platform = selectedPlatform;
+
+  const cards = inf.map((p, i) => {
+    const initial = (p.name || p.handle || "?")[0].toUpperCase();
+    const cls = affinityClass(p.affinity_score);
+    const fmted = fmtFollowers(p.followers);
+    const reasons = (p.affinity_reasons || []).map(r => `<span class="tag">${r}</span>`).join('');
+    const verifiedBadge = p.verified ? `<span class="verified-badge" title="Verificato"></span>` : '';
+
+    return `
+    <div class="card" style="animation-delay:${0.05 + i * 0.06}s">
+      <div class="card-top">
+        <div class="card-identity">
+          <div class="avatar">${initial}</div>
+          <div>
+            <div class="card-name">
+              ${p.name || p.handle} ${verifiedBadge}
+              ${p.city ? `<span class="city-pill"><svg viewBox="0 0 24 24" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>${p.city}</span>` : ''}
+            </div>
+            <div class="card-handle">${p.handle || ''}</div>
+          </div>
+        </div>
+        <div class="followers-block">
+          ${fmted ? `<div class="followers-num">${fmted}</div><div class="followers-label">follower</div>` : `<div class="followers-label" style="margin-top:4px;">N/D</div>`}
+          ${p.followers_note ? `<div style="font-size:10px;color:var(--ink-muted);margin-top:2px;">${p.followers_note}</div>` : ''}
+        </div>
+      </div>
+      ${p.bio_excerpt ? `<div class="card-bio">${p.bio_excerpt}</div>` : ''}
+      <div class="affinity-row">
+        <div class="affinity-label">Affinità</div>
+        <div class="affinity-track"><div class="affinity-fill ${cls.fill}" style="width:${p.affinity_score}%"></div></div>
+        <div class="affinity-score ${cls.score}">${p.affinity_score}</div>
+      </div>
+      ${reasons ? `<div class="tags">${reasons}</div>` : ''}
+      ${p.profile_url ? `<a class="card-link" href="${p.profile_url}" target="_blank" rel="noopener">
+        Apri profilo
+        <svg viewBox="0 0 24 24" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      </a>` : ''}
+    </div>`;
+  }).join('');
+
+  const note = data.search_notes ? `<div class="search-note">💡 ${data.search_notes}</div>` : '';
+
+  return `
+    <div class="results-meta">
+      <div class="results-count"><strong>${inf.length}</strong> influencer trovati</div>
+      <div class="results-tag">${platform}</div>
+    </div>
+    ${note}
+    <div class="cards-grid">${cards}</div>`;
+}
+
+async function startSearch() {
+  const brand  = document.getElementById('brand').value.trim();
+  const sector = document.getElementById('sector').value.trim();
+  if (!brand || !sector) { alert('Inserisci almeno il nome del brand e il settore.'); return; }
+
+  const btn = document.getElementById('searchBtn');
+  const msg = document.getElementById('loadingMsg');
+  const content = document.getElementById('content');
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = `<svg viewBox="0 0 24 24" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Ricerca in corso…`;
+
+  const loadingMsgs = [
+    "Costruendo le query di ricerca…",
+    `Cercando profili su ${selectedPlatform}…`,
+    "Analizzando snippet e follower…",
+    "Calcolando l'indice di affinità…",
+    "Quasi pronto…"
+  ];
+  let idx = 0;
+  msg.textContent = loadingMsgs[0];
+  clearInterval(searchInterval);
+  searchInterval = setInterval(() => {
+    idx = (idx + 1) % loadingMsgs.length;
+    msg.textContent = loadingMsgs[idx];
+  }, 2800);
+
+  content.innerHTML = renderShimmer();
+
+  try {
+    const response = await fetch("/api/search", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 4000,
+        tools: [{ type: "web_search_20250305", name: "web_search" }],
+        messages: [{ role: "user", content: buildPrompt() }]
+      })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const fullText = (data.content || [])
+      .filter(b => b.type === "text")
+      .map(b => b.text)
+      .join("\n");
+
+    const match = fullText.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("Nessun risultato strutturato ricevuto. Riprova.");
+    const parsed = JSON.parse(match[0]);
+
+    content.innerHTML = renderResults(parsed);
+
+  } catch (err) {
+    content.innerHTML = `<div class="error-box"><strong>Errore:</strong> ${err.message || "Qualcosa è andato storto."} Riprova tra qualche istante.</div>`;
+  } finally {
+    clearInterval(searchInterval);
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Cerca influencer`;
+    msg.textContent = '';
+  }
+}
+</script>
+</body>
+</html>
