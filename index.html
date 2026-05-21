@@ -923,7 +923,10 @@ async function startSearch() {
       })
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
+    console.log("Status:", response.status, "Body:", rawText.substring(0, 300));
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${rawText.substring(0, 200)}`);
+    const data = JSON.parse(rawText);
     if (data.error) throw new Error(data.error.message);
 
     const fullText = (data.content || [])
