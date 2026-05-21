@@ -764,9 +764,7 @@ function affinityClass(score) {
   if (score >= 50) return { fill: "affinity-mid",  score: "score-mid" };
   return { fill: "affinity-low", score: "score-low" };
 }
-
-function buildPrompt() {
-  function buildSearchPayload() {
+function buildSearchPayload() {
   return {
     brand: document.getElementById('brand').value.trim(),
     sector: document.getElementById('sector').value.trim(),
