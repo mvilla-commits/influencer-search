@@ -778,26 +778,16 @@ function buildPrompt() {
   const genderLabel = gender === 'M' ? 'uomo' : gender === 'F' ? 'donna' : 'indifferente';
   const genderHint  = gender === 'M' ? ' Preferisci pronomi/termini maschili nelle query.' : gender === 'F' ? ' Preferisci pronomi/termini femminili nelle query.' : '';
 
-  return `Trova influencer italiani su ${selectedPlatform} per questo brand:
-BRAND: ${brand} | SETTORE: ${sector} | GENERE: ${genderLabel}
-FOLLOWER: ${minK ? minK+"K" : "0"} – ${maxK ? maxK+"K" : "∞"} | CARATTERISTICHE: ${chars || "nessuna"}
-${desc ? "BRAND NOTE: " + desc : ""}
+  return `Influencer italiani su ${selectedPlatform} per: ${brand} (${sector})${desc ? ', ' + desc.substring(0,80) : ''}.
+Genere: ${genderLabel}. Follower: ${minK||'0'}K–${maxK||'∞'}K.${chars ? ' Note: ' + chars.substring(0,80) + '.' : ''}
 
-Istruzioni:
-1. Esegui 2 ricerche: site:${site} con termini del settore e caratteristiche richieste in italiano.${genderHint}
-2. Includi SOLO profili con URL ${site} trovato direttamente nei risultati. Non inventare.
-3. Estrai nome, handle, URL, follower se visibili. Filtra per range follower.${gender ? ` Solo genere ${genderLabel}.` : ""}
-4. Affinità 0-100: coerenza brand, caratteristiche, mercato italiano.
-5. Rileva città italiana se desumibile, altrimenti null.
-6. Suggerisci UN profilo straniero rilevante per il brand (fuori brief geografico).
+Cerca su site:${site} con 1 query mirata.${genderHint}
+Includi solo profili con URL ${site} trovato nei risultati. Non inventare.
+Affinity 0-100: coerenza brand+settore+mercato IT. Città se desumibile.
+Aggiungi 1 profilo straniero rilevante (fuori_brief:true, affinity 30-50) solo se trovato nei risultati.
 
-Rispondi SOLO JSON, no markdown:
-{"influencers":[{"name":"","handle":"@","profile_url":"","followers":null,"followers_note":null,"city":null,"affinity_score":80,"affinity_reasons":[""],"bio_excerpt":"","verified":false,"fuori_brief":false}]}
-
-Regole:
-- Max 5 profili italiani certi (fuori_brief: false)
-- Aggiungi in fondo alla lista UN profilo straniero rilevante per il brand (fuori_brief: true), con affinity_score tra 30 e 50. Includilo solo se hai trovato il profilo reale nei risultati di ricerca, non inventarlo.
-- Qualità > quantità.`;
+JSON only, no markdown:
+{"influencers":[{"name":"","handle":"@","profile_url":"","followers":null,"followers_note":null,"city":null,"affinity_score":0,"affinity_reasons":[""],"bio_excerpt":"","verified":false,"fuori_brief":false}]}`;
 }
 
 function renderShimmer() {
@@ -907,8 +897,8 @@ async function startSearch() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 2000,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
+        max_tokens: 1000,
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 1 }],
         messages: [{ role: "user", content: buildPrompt() }]
       })
     });
