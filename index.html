@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Influencer Finder — Italia</title>
+<title>Trovatelo tu — Influencer Finder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -365,6 +365,23 @@
     color: var(--ink-soft);
     flex-shrink: 0;
     letter-spacing: -0.02em;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .avatar .avatar-initial {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .card-name {
@@ -628,13 +645,9 @@
         <svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       </div>
       <div>
-        <div class="brand-title">Influencer<br>Finder</div>
-        <div class="brand-sub">Mercato Italiano</div>
+        <div class="brand-title">Trovatelo tu</div>
+        <div class="brand-sub">Influencer Finder · Italia</div>
       </div>
-    </div>
-
-    <div class="key-warning">
-      🔒 La API key è protetta sul server. Non è mai esposta nel codice.
     </div>
 
     <div class="form-section">
@@ -794,10 +807,13 @@ CARATTERISTICHE RICHIESTE: ${chars || "nessuna specifica"}
 
 Istruzioni:
 1. Esegui 2-4 ricerche mirate con query tipo: site:${site} "${sector}" italia, oppure combinando caratteristiche e termini italiani pertinenti. Varia le query per massimizzare i risultati.${genderHint}
-2. Per ogni profilo trovato negli snippet Google, estrai nome, handle, URL e numero follower se visibile.
-3. Filtra per il range follower richiesto dove il dato è disponibile.${gender ? `\n4. Includi solo influencer di genere ${genderLabel}.` : ''}
-${gender ? '5' : '4'}. Calcola un indice di affinità 0-100 basato su: coerenza con brand e descrizione, match con le caratteristiche richieste, presenza nel mercato italiano, rilevanza di settore.
-${gender ? '6' : '5'}. Cerca di rilevare la città italiana di provenienza o residenza da bio, geotag o riferimenti nei contenuti. Se non è desumibile, lascia city: null.
+2. Includi un profilo SOLO se appare direttamente nei risultati di ricerca con un URL verificabile su ${site}. Non inventare o dedurre profili: se non hai trovato l'URL nei risultati, scartalo.
+3. Per ogni profilo trovato negli snippet Google, estrai nome, handle, URL esatto e numero follower se visibile.
+4. Filtra per il range follower richiesto dove il dato è disponibile.${gender ? `\n5. Includi solo influencer di genere ${genderLabel}.` : ''}
+${gender ? '6' : '5'}. Calcola un indice di affinità 0-100 basato su: coerenza con brand e descrizione, match con le caratteristiche richieste, presenza nel mercato italiano, rilevanza di settore.
+${gender ? '7' : '6'}. Cerca di rilevare la città italiana di provenienza o residenza da bio, geotag o riferimenti nei contenuti. Se non è desumibile, lascia city: null.
+
+È meglio restituire 3 profili certi che 7 con profili dubbi. Qualità prima di quantità.
 
 Rispondi SOLO con un oggetto JSON valido, niente markdown niente backtick:
 {"influencers":[{"name":"Nome o handle","handle":"@username","profile_url":"url completo","followers":125000,"followers_note":"approssimativo da snippet o null","city":"Milano o null","affinity_score":85,"affinity_reasons":["motivo 1","motivo 2"],"bio_excerpt":"estratto bio o descrizione","verified":false}],"search_notes":"breve nota sulla ricerca"}
@@ -833,12 +849,18 @@ function renderResults(data) {
     const fmted = fmtFollowers(p.followers);
     const reasons = (p.affinity_reasons || []).map(r => `<span class="tag">${r}</span>`).join('');
     const verifiedBadge = p.verified ? `<span class="verified-badge" title="Verificato"></span>` : '';
+    const platformKey = { Instagram: "instagram", TikTok: "tiktok", YouTube: "youtube" }[selectedPlatform] || "instagram";
+    const handle = (p.handle || "").replace("@", "");
+    const avatarUrl = handle ? `https://unavatar.io/${platformKey}/${handle}` : null;
+    const avatarHtml = avatarUrl
+      ? `<img src="${avatarUrl}" alt="${p.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span class="avatar-initial" style="display:none">${initial}</span>`
+      : `<span class="avatar-initial">${initial}</span>`;
 
     return `
     <div class="card" style="animation-delay:${0.05 + i * 0.06}s">
       <div class="card-top">
         <div class="card-identity">
-          <div class="avatar">${initial}</div>
+          <div class="avatar">${avatarHtml}</div>
           <div>
             <div class="card-name">
               ${p.name || p.handle} ${verifiedBadge}
