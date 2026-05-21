@@ -890,22 +890,27 @@ async function startSearch() {
 
   content.innerHTML = renderShimmer();
 
-  const doFetch = async (attempt) => {
-    const response = await fetch("https://influencer-proxy.m-villa-a79.workers.dev/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-     body: JSON.stringify(buildSearchPayload())
-      })
-    });
-    const rawText = await response.text();
-    if (response.status === 429 && attempt < 2) {
-      msg.textContent = "Limite raggiunto, riprovo tra 30 secondi…";
-      await new Promise(r => setTimeout(r, 30000));
-      return doFetch(attempt + 1);
-    }
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${rawText.substring(0, 200)}`);
-    return JSON.parse(rawText);
-  };
+ const doFetch = async (attempt) => {
+  const response = await fetch("https://influencer-proxy.m-villa-a79.workers.dev/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(buildSearchPayload())
+  });
+
+  const rawText = await response.text();
+
+  if (response.status === 429 && attempt < 2) {
+    msg.textContent = "Limite raggiunto, riprovo tra 30 secondi…";
+    await new Promise(r => setTimeout(r, 30000));
+    return doFetch(attempt + 1);
+  }
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${rawText.substring(0, 200)}`);
+  }
+
+  return JSON.parse(rawText);
+};
 
   try {
     const data = await doFetch(0);
